@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:doodlr/services/authentication.dart';
+import 'package:email_validator/email_validator.dart';
+import 'package:flutter/services.dart';
 
 class LoginSignupPage extends StatefulWidget {
   LoginSignupPage({this.auth, this.loginCallback});
@@ -30,6 +32,9 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
       form.save();
       return true;
     }
+    setState(() {
+      _isLoading = false;
+    });
     return false;
   }
 
@@ -57,10 +62,14 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
           widget.loginCallback();
         }
       } catch (e) {
+        String errorMsg = e.message;
         print('Error: $e');
+        if (e.code == 'ERROR_USER_NOT_FOUND' || e.code == 'ERROR_WRONG_PASSWORD') {
+          errorMsg = 'Incorrect email address and / or password.';
+        }
         setState(() {
           _isLoading = false;
-          _errorMessage = e.message;
+          _errorMessage = errorMsg;
           _formKey.currentState.reset();
         });
       }
@@ -91,7 +100,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text('Flutter login demo'),
+          title: new Text('Doodlr Login'),
         ),
         body: Stack(
           children: <Widget>[
@@ -123,9 +132,9 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
               showLogo(),
               showEmailInput(),
               showPasswordInput(),
+              showErrorMessage(),
               showPrimaryButton(),
               showSecondaryButton(),
-              showErrorMessage(),
             ],
           ),
         )
@@ -142,6 +151,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
             height: 1.0,
             fontWeight: FontWeight.w300
         ),
+        textAlign: TextAlign.center,
       );
     } else {
       return new Container(
@@ -157,7 +167,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
         padding: EdgeInsets.fromLTRB(0.0, 70.0, 0.0, 0.0),
         child: CircleAvatar(
           backgroundColor: Colors.transparent,
-          radius: 48.0,
+          radius: 68.0,
           child: Image.asset('assets/doodlr_icon-512x512.png'),
         ),
       ),
@@ -166,7 +176,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
 
   Widget showEmailInput() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0.0, 100.0, 0.0, 0.0),
+      padding: const EdgeInsets.fromLTRB(0.0, 80.0, 0.0, 0.0),
       child: new TextFormField(
         maxLines: 1,
         keyboardType: TextInputType.emailAddress,
@@ -178,7 +188,15 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
               color: Colors.grey,
             )
         ),
-        validator: (value) => value.isEmpty ? 'Email can\'t be empty' : null,
+        validator: (value) {
+          if(value.isEmpty) {
+            return 'Email can\'t be empty';
+          }
+          if(!EmailValidator.validate(value)) {
+            return 'Invalid email format';
+          }
+          return null;
+        },
         onSaved: (value) => _email = value.trim(),
       ),
     );
@@ -186,7 +204,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
 
   Widget showPasswordInput() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 0.0),
+      padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 20.0),
       child: new TextFormField(
         maxLines: 1,
         obscureText: true,
@@ -216,19 +234,54 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
 
   Widget showPrimaryButton() {
     return new Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+        padding: EdgeInsets.fromLTRB(0.0, 25.0, 0.0, 0.0),
         child: SizedBox(
           height: 40.0,
           child: new RaisedButton(
-            elevation: 5.0,
-            shape: new RoundedRectangleBorder(
-                borderRadius: new BorderRadius.circular(30.0)
-            ),
-            color: Colors.blue,
-            child: new Text(_isLoginForm ? 'Login' : 'Create account',
-                style: new TextStyle(fontSize: 20.0, color: Colors.white)
-            ),
             onPressed: validateAndSubmit,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(80.0)
+            ),
+            padding: EdgeInsets.all(0.0),
+            child: Ink(
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).accentColor
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(30.0)
+              ),
+              child: Container(
+                alignment: Alignment.center,
+                child: Stack(
+                  children: <Widget>[
+                    Text(
+                      _isLoginForm ? 'Login' : 'Create account',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        foreground: Paint()
+                          ..style = PaintingStyle.stroke
+                          ..strokeWidth = 1.0
+                          ..color = Colors.black,
+                      ),
+                    ),
+                    Text(
+                      _isLoginForm ? 'Login' : 'Create account',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         )
     );

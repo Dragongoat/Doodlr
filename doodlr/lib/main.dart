@@ -14,7 +14,9 @@ class MyApp extends StatelessWidget {
 //        debugShowCheckedModeBanner: false,
         theme: new ThemeData(
           primarySwatch: Colors.blue,
+          accentColor: Colors.blueAccent,
         ),
+        debugShowCheckedModeBanner: false,
         home: new RootPage(auth: new Auth()));
   }
 }
