@@ -1,3 +1,4 @@
+import 'package:doodlr/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:doodlr/services/authentication.dart';
 import 'package:doodlr/pages/home_page.dart';
@@ -21,17 +22,16 @@ class _HomeState extends State<Home> {
   int _currentIndex = 0;
   String _currentPageTitle;
 
-  final List<Widget> _children = [
-    HomeWidget(),
-    PlaceholderWidget(Colors.lightBlue, "My Profile"),
-    PlaceholderWidget(Colors.pink, "Leaderboard"),
-    PlaceholderWidget(Colors.green, "How to Play"),
-  ];
+  List<Widget> _children = [];
 
   @override
   void initState() {
     super.initState();
     _currentPageTitle = "Doodlr Home";
+    _children.add(HomeWidget());
+    _children.add(ProfileWidget(auth: widget.auth));
+    _children.add(PlaceholderWidget(Colors.pink, "Leaderboard"));
+    _children.add(PlaceholderWidget(Colors.green, "How to Play"));
   }
 
   signOut() async {
@@ -81,7 +81,7 @@ class _HomeState extends State<Home> {
           ListTile(
             leading: Icon(Icons.account_circle),
             title: Text('My Profile'),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
               setState(() {
                 _currentIndex = 1;

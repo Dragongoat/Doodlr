@@ -1,5 +1,6 @@
 // adopted from medium article at: https://medium.com/flutterpub/flutter-how-to-do-user-login-with-firebase-a6af760b14d5
 
+import 'package:doodlr/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:doodlr/services/authentication.dart';
 import 'package:email_validator/email_validator.dart';
@@ -18,6 +19,7 @@ class LoginSignupPage extends StatefulWidget {
 class _LoginSignupPageState extends State<LoginSignupPage> {
   final _formKey = new GlobalKey<FormState>();
 
+  String _displayName;
   String _email;
   String _password;
   String _errorMessage;
@@ -51,7 +53,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
           userId = await widget.auth.signIn(_email, _password);
           print('Signed in: $userId');
         } else {
-          userId = await widget.auth.signUp(_email, _password);
+          userId = await widget.auth.signUp(_displayName, _email, _password);
           print('Signed up user: $userId');
         }
         setState(() {
@@ -130,6 +132,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
             shrinkWrap: true,
             children: <Widget>[
               showLogo(),
+              !_isLoginForm ? showDisplayInput() : Container(width: 0, height: 0,),
               showEmailInput(),
               showPasswordInput(),
               showErrorMessage(),
@@ -164,7 +167,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
     return new Hero(
       tag: 'hero',
       child: Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 70.0, 0.0, 0.0),
+        padding: EdgeInsets.fromLTRB(0.0, 70.0, 0.0, 80.0),
         child: CircleAvatar(
           backgroundColor: Colors.transparent,
           radius: 68.0,
@@ -174,9 +177,37 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
     );
   }
 
+  Widget showDisplayInput() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+      child: new TextFormField(
+        maxLines: 1,
+        keyboardType: TextInputType.text,
+        autofocus: false,
+        decoration: new InputDecoration(
+            hintText: 'Display Name',
+            icon: new Icon(
+              Icons.account_circle,
+              color: Colors.grey,
+            )
+        ),
+        validator: (value) {
+          if(value.trim().isEmpty) {
+            return 'Display name can\'t be empty';
+          }
+          if(value.trim().contains(new RegExp(r'[^A-Za-z0-9]'))) {
+            return 'Display name must consist of only alphanumeric characters';
+          }
+          return null;
+        },
+        onSaved: (value) => _displayName = value.trim(),
+      ),
+    );
+  }
+
   Widget showEmailInput() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0.0, 80.0, 0.0, 0.0),
+      padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 0.0),
       child: new TextFormField(
         maxLines: 1,
         keyboardType: TextInputType.emailAddress,
@@ -189,10 +220,10 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
             )
         ),
         validator: (value) {
-          if(value.isEmpty) {
+          if(value.trim().isEmpty) {
             return 'Email can\'t be empty';
           }
-          if(!EmailValidator.validate(value)) {
+          if(!EmailValidator.validate(value.trim())) {
             return 'Invalid email format';
           }
           return null;
@@ -257,28 +288,13 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
               ),
               child: Container(
                 alignment: Alignment.center,
-                child: Stack(
-                  children: <Widget>[
-                    Text(
-                      _isLoginForm ? 'Login' : 'Create account',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        foreground: Paint()
-                          ..style = PaintingStyle.stroke
-                          ..strokeWidth = 1.0
-                          ..color = Colors.black,
-                      ),
-                    ),
-                    Text(
-                      _isLoginForm ? 'Login' : 'Create account',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  _isLoginForm ? 'Login' : 'Create account',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),

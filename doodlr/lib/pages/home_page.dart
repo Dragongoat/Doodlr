@@ -35,7 +35,7 @@ class HomeWidgetState extends State<HomeWidget> {
                       'Welcome to Doodlr!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 72.0,
+                        fontSize: 62.0,
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
                           ..strokeWidth = 3.0
@@ -46,7 +46,7 @@ class HomeWidgetState extends State<HomeWidget> {
                       'Welcome to Doodlr!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 72.0,
+                        fontSize: 62.0,
                         color: Colors.white,
                       ),
                     ),
@@ -79,28 +79,13 @@ class HomeWidgetState extends State<HomeWidget> {
                           minHeight: 60.0
                       ),
                       alignment: Alignment.center,
-                      child: Stack(
-                        children: <Widget>[
-                          Text(
-                            'Enter public game',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 30.0,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 1.0
-                                ..color = Colors.black,
-                            ),
-                          ),
-                          Text(
-                            'Enter public game',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 30.0,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Enter public game',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 30.0,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
