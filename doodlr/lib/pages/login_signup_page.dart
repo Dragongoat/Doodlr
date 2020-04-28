@@ -1,6 +1,5 @@
 // adopted from medium article at: https://medium.com/flutterpub/flutter-how-to-do-user-login-with-firebase-a6af760b14d5
 
-import 'package:doodlr/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:doodlr/services/authentication.dart';
 import 'package:email_validator/email_validator.dart';

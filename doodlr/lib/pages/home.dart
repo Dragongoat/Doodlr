@@ -1,3 +1,4 @@
+import 'package:doodlr/pages/draw_widget.dart';
 import 'package:doodlr/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:doodlr/services/authentication.dart';
@@ -27,11 +28,17 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    _currentPageTitle = "Doodlr Home";
-    _children.add(HomeWidget());
+    _currentPageTitle = "Home";
+    _children.add(HomeWidget(onStartGame: () {
+      setState(() {
+        _currentIndex = 4;
+        _currentPageTitle = 'Public Game';
+      });
+    }));
     _children.add(ProfileWidget(auth: widget.auth));
     _children.add(PlaceholderWidget(Colors.pink, "Leaderboard"));
     _children.add(PlaceholderWidget(Colors.green, "How to Play"));
+    _children.add(Draw());
   }
 
   signOut() async {
@@ -134,7 +141,10 @@ class _HomeState extends State<Home> {
         ],
       ),
       drawer: _showDrawer(),
-      body: _children[_currentIndex],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: _children[_currentIndex],
+      ),
     );
   }
 }

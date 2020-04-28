@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 class HomeWidget extends StatefulWidget {
+  HomeWidget({this.onStartGame});
+
+  final onStartGame;
+
   @override
   State<StatefulWidget> createState() {
     return HomeWidgetState();
@@ -14,7 +18,7 @@ class HomeWidgetState extends State<HomeWidget> {
     super.initState();
   }
 
-  Widget _showPage() {
+  Widget _showHome() {
     return Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -56,7 +60,9 @@ class HomeWidgetState extends State<HomeWidget> {
                   height: 150.0,
                 ),
                 RaisedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    widget.onStartGame();
+                  },
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(80.0)
                   ),
@@ -98,8 +104,6 @@ class HomeWidgetState extends State<HomeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: _showPage(),
-    );
+      return _showHome();
   }
 }
