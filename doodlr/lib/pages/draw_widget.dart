@@ -27,53 +27,182 @@ class _DrawState extends State<Draw> {
   ];
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: _showTools(),
-      body: _showCanvas(),
+    return _showPage();
+  }
+
+  Widget _showPage() {
+    return Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/img_colored_pencils_pixel.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        constraints: BoxConstraints.expand(),
+        child: Column(
+          children: [
+            _showInfoBox(),
+            _showCanvas(),
+            _showTools(),
+          ],
+        )
+    );
+  }
+
+  Widget _showInfoBox() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 0.0),
+      child: FractionallySizedBox(
+        widthFactor: 0.9,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 2.0),
+            color: Colors.green[300],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black,
+                blurRadius: 10.0,
+                spreadRadius: 1.0,
+                offset: Offset(
+                  5.0,
+                  5.0,
+                ),
+              )
+            ],
+          ),
+          child: Column(
+            children: <Widget>[
+              const SizedBox(height: 5),
+              Text(
+                "You are drawing: house",
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text("Time Remaining:"),
+              Text(
+                "1m 0s",
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(height: 5),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   Widget _showCanvas() {
-    return GestureDetector(
-      onPanUpdate: (details) {
-        setState(() {
-          RenderBox renderBox = context.findRenderObject();
-          points.add(DrawingPoints(
-              points: renderBox.globalToLocal(details.globalPosition),
-              paint: Paint()
-                ..strokeCap = strokeCap
-                ..isAntiAlias = true
-                ..color = selectedColor.withOpacity(opacity)
-                ..strokeWidth = strokeWidth));
-        });
-      },
-      onPanStart: (details) {
-        setState(() {
-          RenderBox renderBox = context.findRenderObject();
-          points.add(DrawingPoints(
-              points: renderBox.globalToLocal(details.globalPosition),
-              paint: Paint()
-                ..strokeCap = strokeCap
-                ..isAntiAlias = true
-                ..color = selectedColor.withOpacity(opacity)
-                ..strokeWidth = strokeWidth));
-        });
-      },
-      onPanEnd: (details) {
-        setState(() {
-          points.add(null);
-        });
-      },
-      child: CustomPaint(
-        size: Size.infinite,
-        painter: DrawingPainter(
-          pointsList: points,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 15.0),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black, width: 2.0),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black,
+              blurRadius: 10.0,
+              spreadRadius: 1.0,
+              offset: Offset(
+                5.0,
+                5.0,
+              ),
+            )
+          ],
+        ),
+        child: GestureDetector(
+          onPanUpdate: (details) {
+            setState(() {
+              RenderBox renderBox = context.findRenderObject();
+              double boxSize = MediaQuery.of(context).size.width * 0.9;
+              Offset touchPosition = details.localPosition;
+              if (touchPosition.dx < 0 || touchPosition.dy < 0 ||
+                touchPosition.dx > boxSize || touchPosition.dy > boxSize) {
+                points.add(null);
+              }
+              else {
+                points.add(DrawingPoints(
+                    points: details.localPosition,
+                    paint: Paint()
+                      ..strokeCap = strokeCap
+                      ..isAntiAlias = true
+                      ..color = selectedColor.withOpacity(opacity)
+                      ..strokeWidth = strokeWidth));
+              }
+            });
+          },
+          onPanStart: (details) {
+            setState(() {
+              RenderBox renderBox = context.findRenderObject();
+              points.add(DrawingPoints(
+                  points: details.localPosition,
+                  paint: Paint()
+                    ..strokeCap = strokeCap
+                    ..isAntiAlias = true
+                    ..color = selectedColor.withOpacity(opacity)
+                    ..strokeWidth = strokeWidth));
+            });
+          },
+          onPanEnd: (details) {
+            setState(() {
+              points.add(null);
+            });
+          },
+          child: CustomPaint(
+            size: Size.square(MediaQuery.of(context).size.width * 0.9),
+            painter: DrawingPainter(
+              pointsList: points,
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget _showTools() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+      child: FractionallySizedBox(
+        widthFactor: 0.9,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 2.0),
+            color: Colors.lightBlueAccent[100],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black,
+                blurRadius: 10.0,
+                spreadRadius: 1.0,
+                offset: Offset(
+                  5.0,
+                  5.0,
+                ),
+              )
+            ],
+          ),
+          child: Column(
+            children: <Widget>[
+              const SizedBox(height: 5),
+              Text(
+                "Drawing Tools",
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _showOldTools(),
+            ],
+          )
+        ),
+      ),
+    );
+  }
+
+  Widget _showOldTools() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(

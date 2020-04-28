@@ -33,28 +33,20 @@ class HomeWidgetState extends State<HomeWidget> {
                 const SizedBox(
                   height: 100.0,
                 ),
-                Stack(
-                  children: <Widget>[
-                    Text(
-                      'Welcome to Doodlr!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 62.0,
-                        foreground: Paint()
-                          ..style = PaintingStyle.stroke
-                          ..strokeWidth = 3.0
-                          ..color = Colors.black,
-                      ),
-                    ),
-                    Text(
-                      'Welcome to Doodlr!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 62.0,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Welcome to Doodlr!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 62.0,
+                    color: Colors.white,
+                    shadows: <Shadow>[
+                      Shadow(
+                        offset: Offset(3.0, 3.0),
+                        blurRadius: 2.0,
+                        color: Colors.black,
+                      )
+                    ],
+                  ),
                 ),
                 const SizedBox(
                   height: 150.0,
