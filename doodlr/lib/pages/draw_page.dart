@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class Draw extends StatefulWidget {
+  Draw({this.onJudgingRound});
+
+  final onJudgingRound;
+
   @override
   _DrawState createState() => _DrawState();
 }
@@ -14,16 +18,16 @@ class _DrawState extends State<Draw> {
   Color pickerColor = Colors.black;
   double strokeWidth = 3.0;
   List<DrawingPoints> points = List();
-  bool showBottomList = false;
   double opacity = 1.0;
   StrokeCap strokeCap = StrokeCap.round;
-  SelectedMode selectedMode = SelectedMode.StrokeWidth;
+  SelectedMode selectedMode = SelectedMode.Color;
   List<Color> colors = [
     Colors.red,
     Colors.green,
     Colors.blue,
     Colors.amber,
-    Colors.black
+    Colors.black,
+    Colors.white
   ];
   @override
   Widget build(BuildContext context) {
@@ -88,6 +92,12 @@ class _DrawState extends State<Draw> {
                 ),
               ),
               const SizedBox(height: 5),
+              FlatButton(
+                child: Text("Go to Judging"),
+                onPressed: () {
+                  widget.onJudgingRound();
+                },
+              )
             ],
           ),
         ),
@@ -152,10 +162,12 @@ class _DrawState extends State<Draw> {
               points.add(null);
             });
           },
-          child: CustomPaint(
-            size: Size.square(MediaQuery.of(context).size.width * 0.9),
-            painter: DrawingPainter(
-              pointsList: points,
+          child: ClipRect(
+            child: CustomPaint(
+              size: Size.square(MediaQuery.of(context).size.width * 0.9),
+              painter: DrawingPainter(
+                pointsList: points,
+              ),
             ),
           ),
         ),
@@ -186,14 +198,6 @@ class _DrawState extends State<Draw> {
           ),
           child: Column(
             children: <Widget>[
-              const SizedBox(height: 5),
-              Text(
-                "Drawing Tools",
-                style: TextStyle(
-                  fontSize: 20,
-                ),
-              ),
-              const SizedBox(height: 10),
               _showOldTools(),
             ],
           )
@@ -207,9 +211,6 @@ class _DrawState extends State<Draw> {
       padding: const EdgeInsets.all(8.0),
       child: Container(
           padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50.0),
-              color: Colors.grey[300]),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -218,67 +219,171 @@ class _DrawState extends State<Draw> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    IconButton(
-                        icon: Icon(Icons.album),
-                        onPressed: () {
-                          setState(() {
-                            if (selectedMode == SelectedMode.StrokeWidth)
-                              showBottomList = !showBottomList;
-                            selectedMode = SelectedMode.StrokeWidth;
-                          });
-                        }),
-                    IconButton(
-                        icon: Icon(Icons.opacity),
-                        onPressed: () {
-                          setState(() {
-                            if (selectedMode == SelectedMode.Opacity)
-                              showBottomList = !showBottomList;
-                            selectedMode = SelectedMode.Opacity;
-                          });
-                        }),
-                    IconButton(
-                        icon: Icon(Icons.color_lens),
-                        onPressed: () {
-                          setState(() {
-                            if (selectedMode == SelectedMode.Color)
-                              showBottomList = !showBottomList;
-                            selectedMode = SelectedMode.Color;
-                          });
-                        }),
-                    IconButton(
-                        icon: Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            showBottomList = false;
-                            points.clear();
-                          });
-                        }),
+                    Column(
+                      children: <Widget>[
+                        ClipOval(
+                          child: Material(
+                            color: Colors.lightBlueAccent[100],
+                            child: Center(
+                              child: Ink(
+                                decoration: ShapeDecoration(
+                                  color: (selectedMode == SelectedMode.Color) ? Colors.lightBlue : Colors.lightBlueAccent[100],
+                                  shape: CircleBorder(side: BorderSide(width: 2.0, color: selectedColor)),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(Icons.color_lens),
+                                  color: (selectedMode == SelectedMode.Color) ? Colors.white : Colors.black,
+                                  onPressed: () {
+                                    setState(() {
+                                      selectedMode = SelectedMode.Color;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Text("Color")
+                      ],
+                    ),
+                    Column(
+                      children: <Widget>[
+                        ClipOval(
+                          child: Material(
+                            color: Colors.lightBlueAccent[100],
+                            child: Center(
+                              child: Ink(
+                                decoration: ShapeDecoration(
+                                  color: (selectedMode == SelectedMode.StrokeWidth) ? Colors.lightBlue : Colors.lightBlueAccent[100],
+                                  shape: CircleBorder(),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(Icons.album),
+                                  color: (selectedMode == SelectedMode.StrokeWidth) ? Colors.white : Colors.black,
+                                  onPressed: () {
+                                    setState(() {
+                                      selectedMode = SelectedMode.StrokeWidth;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Text("Stroke")
+                      ],
+                    ),
+                    Column(
+                      children: <Widget>[
+                        ClipOval(
+                          child: Material(
+                            color: Colors.lightBlueAccent[100],
+                            child: Center(
+                              child: Ink(
+                                decoration: ShapeDecoration(
+                                  color: (selectedMode == SelectedMode.Opacity) ? Colors.lightBlue : Colors.lightBlueAccent[100],
+                                  shape: CircleBorder(),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(Icons.opacity),
+                                  color: (selectedMode == SelectedMode.Opacity) ? Colors.white : Colors.black,
+                                  onPressed: () {
+                                    setState(() {
+                                      selectedMode = SelectedMode.Opacity;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Text("Opacity")
+                      ],
+                    ),
+                    Column(
+                      children: <Widget>[
+                        ClipOval(
+                          child: Material(
+                            color: Colors.lightBlueAccent[100],
+                            child: Center(
+                              child: Ink(
+                                decoration: ShapeDecoration(
+                                  color: Colors.lightBlueAccent[100],
+                                  shape: CircleBorder(),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(Icons.delete),
+                                  color: Colors.black,
+                                  onPressed: () {
+                                    showDialog<void>(
+                                      context: context,
+                                      barrierDismissible: true, // user must tap button!
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text('Clear Drawing?'),
+                                          content: SingleChildScrollView(
+                                            child: ListBody(
+                                              children: <Widget>[
+                                                Text('Are you sure you want to clear your drawing?'),
+                                              ],
+                                            ),
+                                          ),
+                                          actions: <Widget>[
+                                            FlatButton(
+                                              child: Text('No'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            FlatButton(
+                                              child: Text('Yes'),
+                                              onPressed: () {
+                                                setState(() {
+                                                  points.clear();
+                                                });
+                                                Navigator.of(context).pop();
+                                              },
+                                            )
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Text("Clear")
+                      ],
+                    ),
                   ],
                 ),
-                Visibility(
-                  child: (selectedMode == SelectedMode.Color)
-                      ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: getColorList(),
-                  )
-                      : Slider(
-                      value: (selectedMode == SelectedMode.StrokeWidth)
-                          ? strokeWidth
-                          : opacity,
-                      max: (selectedMode == SelectedMode.StrokeWidth)
-                          ? 50.0
-                          : 1.0,
-                      min: 0.0,
-                      onChanged: (val) {
-                        setState(() {
-                          if (selectedMode == SelectedMode.StrokeWidth)
-                            strokeWidth = val;
-                          else
-                            opacity = val;
-                        });
-                      }),
-                  visible: showBottomList,
+                SizedBox(height: 10.0),
+                (selectedMode == SelectedMode.Color)
+                    ? Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: getColorList(),
                 ),
+                    )
+                    : Slider(
+                    value: (selectedMode == SelectedMode.StrokeWidth)
+                        ? strokeWidth
+                        : opacity,
+                    max: (selectedMode == SelectedMode.StrokeWidth)
+                        ? 50.0
+                        : 1.0,
+                    min: 0.0,
+                    onChanged: (val) {
+                      setState(() {
+                        if (selectedMode == SelectedMode.StrokeWidth)
+                          strokeWidth = val;
+                        else
+                          opacity = val;
+                      });
+                    }),
               ],
             ),
           )
