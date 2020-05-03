@@ -43,8 +43,11 @@ flutter:
 
   assets:
     - assets/doodlr_icon-512x512.png
-    - assets/img_colored_pencils_pixel.png
+    - assets/colored_pencils_pixel.png
     - assets/profile_pic.jpg
+    - assets/bronze.png
+    - assets/silver.png
+    - assets/gold.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

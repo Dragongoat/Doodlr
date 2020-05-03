@@ -12,7 +12,7 @@ class _JudgingWidgetState extends State<JudgingWidget> {
     return Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/img_colored_pencils_pixel.png"),
+            image: AssetImage("assets/colored_pencils_pixel.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -61,7 +61,9 @@ class _JudgingWidgetState extends State<JudgingWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Text("Gold"),
+                  Image(
+                    image: AssetImage("assets/bronze.png"),
+                  ),
                   Text("Silver"),
                   Text("Bronze")
                 ],

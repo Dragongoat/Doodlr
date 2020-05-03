@@ -38,7 +38,7 @@ class _DrawState extends State<Draw> {
     return Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/img_colored_pencils_pixel.png"),
+            image: AssetImage("assets/colored_pencils_pixel.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -84,7 +84,12 @@ class _DrawState extends State<Draw> {
                 ),
               ),
               const SizedBox(height: 10),
-              Text("Time Remaining:"),
+              GestureDetector(
+                child: Text("Time Remaining:"),
+                onTap: () {
+                  widget.onJudgingRound();
+                },
+              ),
               Text(
                 "1m 0s",
                 style: TextStyle(
@@ -92,12 +97,6 @@ class _DrawState extends State<Draw> {
                 ),
               ),
               const SizedBox(height: 5),
-              FlatButton(
-                child: Text("Go to Judging"),
-                onPressed: () {
-                  widget.onJudgingRound();
-                },
-              )
             ],
           ),
         ),

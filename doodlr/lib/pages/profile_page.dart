@@ -41,7 +41,7 @@ class ProfileWidgetState extends State<ProfileWidget> {
     return Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/img_colored_pencils_pixel.png"),
+            image: AssetImage("assets/colored_pencils_pixel.png"),
             fit: BoxFit.cover,
           ),
         ),
