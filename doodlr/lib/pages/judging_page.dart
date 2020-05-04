@@ -9,6 +9,9 @@ enum SelectedMedal {
 }
 
 class JudgingWidget extends StatefulWidget {
+  JudgingWidget({this.onResultsRound});
+
+  final onResultsRound;
 
   @override
   _JudgingWidgetState createState() => _JudgingWidgetState();
@@ -28,6 +31,17 @@ class _JudgingWidgetState extends State<JudgingWidget> {
     Colors.black,
     Colors.black
   ];
+
+  void _clearVotes() {
+    setState(() {
+      for (var i = 0; i < _drawings.length; i++) {
+        _drawings[i] = Colors.black;
+      }
+      _curBronze = null;
+      _curSilver = null;
+      _curGold = null;
+    });
+  }
 
   void _changeVote(index) {
     setState(() {
@@ -107,51 +121,47 @@ class _JudgingWidgetState extends State<JudgingWidget> {
           FractionallySizedBox(
             widthFactor: 0.9,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _changeVote(0),
-                    child: Container(
-                      child: SizedBox(height: 150.0,),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: _drawings[0], width: (_drawings[0] == Colors.black) ? 2.0 : 4.0),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _drawings[0],
-                            blurRadius: 10.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(
-                              5.0,
-                              5.0,
-                            ),
-                          )
-                        ],
-                      ),
+                GestureDetector(
+                  onTap: () => _changeVote(0),
+                  child: Container(
+                    child: SizedBox(height: MediaQuery.of(context).size.width * 0.4, width: MediaQuery.of(context).size.width * 0.4,),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _drawings[0], width: (_drawings[0] == Colors.black) ? 2.0 : 4.0),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _drawings[0],
+                          blurRadius: 10.0,
+                          spreadRadius: 1.0,
+                          offset: Offset(
+                            5.0,
+                            5.0,
+                          ),
+                        )
+                      ],
                     ),
                   ),
                 ),
-                SizedBox(width: 15.0,),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _changeVote(1),
-                    child: Container(
-                      child: SizedBox(height: 150.0,),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: _drawings[1], width: (_drawings[1] == Colors.black) ? 2.0 : 4.0),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _drawings[1],
-                            blurRadius: 10.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(
-                              5.0,
-                              5.0,
-                            ),
-                          )
-                        ],
-                      ),
+                GestureDetector(
+                  onTap: () => _changeVote(1),
+                  child: Container(
+                    child: SizedBox(height: MediaQuery.of(context).size.width * 0.4, width: MediaQuery.of(context).size.width * 0.4,),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _drawings[1], width: (_drawings[1] == Colors.black) ? 2.0 : 4.0),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _drawings[1],
+                          blurRadius: 10.0,
+                          spreadRadius: 1.0,
+                          offset: Offset(
+                            5.0,
+                            5.0,
+                          ),
+                        )
+                      ],
                     ),
                   ),
                 ),
@@ -162,51 +172,47 @@ class _JudgingWidgetState extends State<JudgingWidget> {
           FractionallySizedBox(
             widthFactor: 0.9,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _changeVote(2),
-                    child: Container(
-                      child: SizedBox(height: 150.0,),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: _drawings[2], width: (_drawings[2] == Colors.black) ? 2.0 : 4.0),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _drawings[2],
-                            blurRadius: 10.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(
-                              5.0,
-                              5.0,
-                            ),
-                          )
-                        ],
-                      ),
+                GestureDetector(
+                  onTap: () => _changeVote(2),
+                  child: Container(
+                    child: SizedBox(height: MediaQuery.of(context).size.width * 0.4, width: MediaQuery.of(context).size.width * 0.4,),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _drawings[2], width: (_drawings[2] == Colors.black) ? 2.0 : 4.0),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _drawings[2],
+                          blurRadius: 10.0,
+                          spreadRadius: 1.0,
+                          offset: Offset(
+                            5.0,
+                            5.0,
+                          ),
+                        )
+                      ],
                     ),
                   ),
                 ),
-                SizedBox(width: 15.0,),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _changeVote(3),
-                    child: Container(
-                      child: SizedBox(height: 150.0,),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: _drawings[3], width: (_drawings[3] == Colors.black) ? 2.0 : 4.0),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _drawings[3],
-                            blurRadius: 10.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(
-                              5.0,
-                              5.0,
-                            ),
-                          )
-                        ],
-                      ),
+                GestureDetector(
+                  onTap: () => _changeVote(3),
+                  child: Container(
+                    child: SizedBox(height: MediaQuery.of(context).size.width * 0.4, width: MediaQuery.of(context).size.width * 0.4,),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _drawings[3], width: (_drawings[3] == Colors.black) ? 2.0 : 4.0),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _drawings[3],
+                          blurRadius: 10.0,
+                          spreadRadius: 1.0,
+                          offset: Offset(
+                            5.0,
+                            5.0,
+                          ),
+                        )
+                      ],
                     ),
                   ),
                 ),
@@ -217,51 +223,47 @@ class _JudgingWidgetState extends State<JudgingWidget> {
           FractionallySizedBox(
             widthFactor: 0.9,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _changeVote(4),
-                    child: Container(
-                      child: SizedBox(height: 150.0,),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: _drawings[4], width: (_drawings[4] == Colors.black) ? 2.0 : 4.0),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _drawings[4],
-                            blurRadius: 10.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(
-                              5.0,
-                              5.0,
-                            ),
-                          )
-                        ],
-                      ),
+                GestureDetector(
+                  onTap: () => _changeVote(4),
+                  child: Container(
+                    child: SizedBox(height: MediaQuery.of(context).size.width * 0.4, width: MediaQuery.of(context).size.width * 0.4,),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _drawings[4], width: (_drawings[4] == Colors.black) ? 2.0 : 4.0),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _drawings[4],
+                          blurRadius: 10.0,
+                          spreadRadius: 1.0,
+                          offset: Offset(
+                            5.0,
+                            5.0,
+                          ),
+                        )
+                      ],
                     ),
                   ),
                 ),
-                SizedBox(width: 15.0,),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _changeVote(5),
-                    child: Container(
-                      child: SizedBox(height: 150.0,),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: _drawings[5], width: (_drawings[5] == Colors.black) ? 2.0 : 4.0),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _drawings[5],
-                            blurRadius: 10.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(
-                              5.0,
-                              5.0,
-                            ),
-                          )
-                        ],
-                      ),
+                GestureDetector(
+                  onTap: () => _changeVote(5),
+                  child: Container(
+                    child: SizedBox(height: MediaQuery.of(context).size.width * 0.4, width: MediaQuery.of(context).size.width * 0.4,),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _drawings[5], width: (_drawings[5] == Colors.black) ? 2.0 : 4.0),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _drawings[5],
+                          blurRadius: 10.0,
+                          spreadRadius: 1.0,
+                          offset: Offset(
+                            5.0,
+                            5.0,
+                          ),
+                        )
+                      ],
                     ),
                   ),
                 ),
@@ -269,6 +271,84 @@ class _JudgingWidgetState extends State<JudgingWidget> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _showClearVotes() {
+    return RaisedButton(
+      onPressed: () {
+        _clearVotes();
+      },
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(80.0)
+      ),
+      padding: EdgeInsets.all(0.0),
+      child: Ink(
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.red,
+                Colors.redAccent
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(30.0)
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+              maxWidth: 300.0,
+              minHeight: 40.0
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            'Clear Selection',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _showSubmit() {
+    return RaisedButton(
+      onPressed: () => widget.onResultsRound(),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(80.0)
+      ),
+      padding: EdgeInsets.all(0.0),
+      child: Ink(
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.green,
+                Colors.green[400]
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(30.0)
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+              maxWidth: 300.0,
+              minHeight: 40.0
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            'Submit',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -316,18 +396,12 @@ class _JudgingWidgetState extends State<JudgingWidget> {
                       child: Center(
                         child: Ink(
                           decoration: ShapeDecoration(
-                            color: (_selectedMedal == SelectedMedal.BRONZE) ? Colors.green[100] : Colors.green[300],
-                            shape: (_selectedMedal == SelectedMedal.BRONZE) ?
-                            CircleBorder(
-                              side: BorderSide(
-                                  width: 1.0,
-                                  color: Colors.deepOrange,
-                              ),
-                            ) : CircleBorder(),
+                            color: (_selectedMedal == SelectedMedal.BRONZE) ? Colors.deepOrange : Colors.green[300],
+                            shape: CircleBorder(),
                           ),
                           child: IconButton(
                             icon: Icon(FontAwesome5Solid.medal),
-                            color: Colors.deepOrange,
+                            color: (_selectedMedal == SelectedMedal.BRONZE) ? Colors.white : Colors.deepOrange,
                             onPressed: () {
                               setState(() {
                                 _selectedMedal = SelectedMedal.BRONZE;
@@ -344,18 +418,12 @@ class _JudgingWidgetState extends State<JudgingWidget> {
                       child: Center(
                         child: Ink(
                           decoration: ShapeDecoration(
-                            color: (_selectedMedal == SelectedMedal.SILVER) ? Colors.green[100] : Colors.green[300],
-                            shape: (_selectedMedal == SelectedMedal.SILVER) ?
-                            CircleBorder(
-                              side: BorderSide(
-                                width: 1.0,
-                                color: Colors.grey,
-                              ),
-                            ) : CircleBorder(),
+                            color: (_selectedMedal == SelectedMedal.SILVER) ? Colors.grey : Colors.green[300],
+                            shape: CircleBorder(),
                           ),
                           child: IconButton(
                             icon: Icon(FontAwesome5Solid.medal),
-                            color: Colors.grey,
+                            color: (_selectedMedal == SelectedMedal.SILVER) ? Colors.white : Colors.grey,
                             onPressed: () {
                               setState(() {
                                 _selectedMedal = SelectedMedal.SILVER;
@@ -372,18 +440,12 @@ class _JudgingWidgetState extends State<JudgingWidget> {
                       child: Center(
                         child: Ink(
                           decoration: ShapeDecoration(
-                            color: (_selectedMedal == SelectedMedal.GOLD) ? Colors.green[100] : Colors.green[300],
-                            shape: (_selectedMedal == SelectedMedal.GOLD) ?
-                            CircleBorder(
-                              side: BorderSide(
-                                width: 1.0,
-                                color: Colors.amber,
-                              ),
-                            ) : CircleBorder(),
+                            color: (_selectedMedal == SelectedMedal.GOLD) ? Colors.amber : Colors.green[300],
+                            shape: CircleBorder(),
                           ),
                           child: IconButton(
                             icon: Icon(FontAwesome5Solid.medal),
-                            color: Colors.amber,
+                            color: (_selectedMedal == SelectedMedal.GOLD) ? Colors.white : Colors.amber,
                             onPressed: () {
                               setState(() {
                                 _selectedMedal = SelectedMedal.GOLD;
@@ -404,6 +466,9 @@ class _JudgingWidgetState extends State<JudgingWidget> {
                   fontSize: 20,
                 ),
               ),
+              const SizedBox(height: 5),
+              _showClearVotes(),
+              _showSubmit(),
               const SizedBox(height: 5),
             ],
           ),

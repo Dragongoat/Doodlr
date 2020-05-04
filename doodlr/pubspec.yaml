@@ -29,6 +29,7 @@ dependencies:
   email_validator: ^1.0.4
   intl: ^0.16.1
   flutter_colorpicker: ^0.3.4
+  auto_size_text: ^2.1.0
 
 dev_dependencies:
   flutter_test:

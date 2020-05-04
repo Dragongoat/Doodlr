@@ -33,7 +33,7 @@ class ProfileWidgetState extends State<ProfileWidget> {
   }
 
   Widget _showPage() {
-    if (_user == null) {
+    if (_user == null || _firestore == null) {
       return Center(
         child: CircularProgressIndicator(),
       );
@@ -89,7 +89,7 @@ class ProfileWidgetState extends State<ProfileWidget> {
                         .document(_user.uid)
                         .snapshots(),
                     builder: (context, snapshot) {
-                      if (!snapshot.hasData) return const Text("");
+                      if (!snapshot.hasData) return const Text("--");
                       return Text(
                         snapshot.data["gamesPlayed"].toString(),
                         style: TextStyle(
@@ -123,7 +123,7 @@ class ProfileWidgetState extends State<ProfileWidget> {
                           .document(_user.uid)
                           .snapshots(),
                       builder: (context, snapshot) {
-                        if (!snapshot.hasData) return const Text("");
+                        if (!snapshot.hasData) return const Text("--");
                         return Text(
                           snapshot.data["goldMedals"].toString(),
                           style: TextStyle(
@@ -165,7 +165,7 @@ class ProfileWidgetState extends State<ProfileWidget> {
                           .document(_user.uid)
                           .snapshots(),
                       builder: (context, snapshot) {
-                        if (!snapshot.hasData) return const Text("");
+                        if (!snapshot.hasData) return const Text("--");
                         return Text(
                           snapshot.data["silverMedals"].toString(),
                           style: TextStyle(
@@ -200,7 +200,7 @@ class ProfileWidgetState extends State<ProfileWidget> {
                           .document(_user.uid)
                           .snapshots(),
                       builder: (context, snapshot) {
-                        if (!snapshot.hasData) return const Text("");
+                        if (!snapshot.hasData) return const Text("--");
                         return Text(
                           snapshot.data["bronzeMedals"].toString(),
                           style: TextStyle(
@@ -261,7 +261,7 @@ class ProfileWidgetState extends State<ProfileWidget> {
                   .document(_user.uid)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Text("");
+                if (!snapshot.hasData) return const Text("--");
                 return Text(
                   "Joined: " + DateFormat
                       .yMd()

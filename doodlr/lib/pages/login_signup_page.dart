@@ -197,6 +197,9 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
           if(value.trim().contains(new RegExp(r'[^A-Za-z0-9]'))) {
             return 'Display name must consist of only alphanumeric characters';
           }
+          if(value.trim().length > 20) {
+            return 'Display name must contain 20 characters or fewer';
+          }
           return null;
         },
         onSaved: (value) => _displayName = value.trim(),

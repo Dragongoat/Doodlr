@@ -86,9 +86,7 @@ class _DrawState extends State<Draw> {
               const SizedBox(height: 10),
               GestureDetector(
                 child: Text("Time Remaining:"),
-                onTap: () {
-                  widget.onJudgingRound();
-                },
+                onTap: () => widget.onJudgingRound(),
               ),
               Text(
                 "1m 0s",

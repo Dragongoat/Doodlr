@@ -1,5 +1,6 @@
 import 'package:doodlr/pages/draw_page.dart';
 import 'package:doodlr/pages/profile_page.dart';
+import 'package:doodlr/pages/results_page.dart';
 import 'package:flutter/material.dart';
 import 'package:doodlr/services/authentication.dart';
 import 'package:doodlr/pages/home_page.dart';
@@ -45,7 +46,18 @@ class _HomeState extends State<Home> {
         _currentPageTitle = 'Judging Round';
       });
     }));
-    _children.add(JudgingWidget());
+    _children.add(JudgingWidget(onResultsRound: () {
+      setState(() {
+        _currentIndex = 6;
+        _currentPageTitle = 'Results';
+      });
+    }));
+    _children.add(ResultsWidget(onPlayAgain: () {
+      setState(() {
+        _currentIndex = 4;
+        _currentPageTitle = 'Public Game';
+      });
+    },));
   }
 
   signOut() async {
@@ -105,24 +117,34 @@ class _HomeState extends State<Home> {
           ),
           ListTile(
             leading: Icon(Icons.assessment),
-            title: Text('Leaderboard'),
+            title: Text(
+              'Leaderboard',
+              style: TextStyle(
+                color: Colors.grey
+              ),
+            ),
             onTap: () {
               Navigator.pop(context);
-              setState(() {
-                _currentIndex = 2;
-                _currentPageTitle = 'Leaderboard';
-              });
+              //setState(() {
+              // _currentIndex = 2;
+              //_currentPageTitle = 'Leaderboard';
+              //});
             },
           ),
           ListTile(
             leading: Icon(Icons.help),
-            title: Text('How to Play'),
+            title: Text(
+              'How to Play',
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
             onTap: () {
               Navigator.pop(context);
-              setState(() {
-                _currentIndex = 3;
-                _currentPageTitle = 'How to Play';
-              });
+              //setState(() {
+              //  _currentIndex = 3;
+              //  _currentPageTitle = 'How to Play';
+              //});
             },
           )
         ],
