@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doodlr/main.dart';
 import 'package:doodlr/services/authentication.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class ProfileWidget extends StatefulWidget {
@@ -18,6 +21,7 @@ class ProfileWidget extends StatefulWidget {
 class ProfileWidgetState extends State<ProfileWidget> {
   FirebaseUser _user;
   final _firestore = Firestore.instance;
+  String _profilePicLink;
 
   @override
   void initState() {
@@ -29,6 +33,36 @@ class ProfileWidgetState extends State<ProfileWidget> {
     var user = await widget.auth.getCurrentUser();
     setState(() {
       _user = user;
+    });
+    getProfilePic();
+  }
+
+  void getProfilePic() async {
+    DocumentSnapshot docRef = await _firestore
+        .collection("users")
+        .document(_user.uid)
+        .get();
+
+    if (docRef.data.containsKey("profilePic")) {
+      setState(() {
+        _profilePicLink = docRef.data["profilePic"];
+      });
+    }
+  }
+
+  void editProfilePic(source) async {
+    var image = await ImagePicker.pickImage(source: source);
+    StorageReference ref = FirebaseStorage.instance.ref().child("profilePics").child("${_user.uid}.png");
+    StorageUploadTask uploadTask = ref.putFile(image);
+    var link = await (await uploadTask.onComplete).ref.getDownloadURL();
+    await _firestore
+        .collection("users")
+        .document(_user.uid)
+        .updateData({
+      "profilePic": link
+    });
+    setState(() {
+      _profilePicLink = link;
     });
   }
 
@@ -74,10 +108,8 @@ class ProfileWidgetState extends State<ProfileWidget> {
 
   Widget _showStats() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        SizedBox(
-          height: 25.0,
-        ),
         Row(
           children: [
             Expanded(
@@ -152,7 +184,7 @@ class ProfileWidgetState extends State<ProfileWidget> {
           ],
         ),
         SizedBox(
-          height: 25.0,
+          height: 45.0,
         ),
         Row(
           children: [
@@ -278,6 +310,7 @@ class ProfileWidgetState extends State<ProfileWidget> {
                 );
               }
           ),
+          SizedBox(height: 10.0,),
         ],
       ),
     );
@@ -285,10 +318,63 @@ class ProfileWidgetState extends State<ProfileWidget> {
 
   Widget _showAvatar() {
     return Expanded(
-      child: CircleAvatar(
-        maxRadius: 80.0,
-        minRadius: 40.0,
-        backgroundImage: AssetImage("assets/profile_pic.jpg"),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: <Widget>[
+            CircleAvatar(
+              maxRadius: 80.0,
+              minRadius: 40.0,
+              backgroundImage: (_profilePicLink == null) ? AssetImage("assets/profile_pic.jpg") : NetworkImage(_profilePicLink),
+              backgroundColor: Colors.transparent,
+            ),
+            SizedBox(height: 5.0,),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  ClipOval(
+                    child: Material(
+                      color: Colors.white,
+                      child: Center(
+                        child: Ink(
+                          decoration: const ShapeDecoration(
+                            color: Colors.lightBlue,
+                            shape: CircleBorder(),
+                          ),
+                          child: IconButton(
+                            icon: Icon(Icons.photo_camera),
+                            color: Colors.white,
+                            onPressed: () => editProfilePic(ImageSource.camera),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 5.0,),
+                  ClipOval(
+                    child: Material(
+                      color: Colors.white,
+                      child: Center(
+                        child: Ink(
+                          decoration: const ShapeDecoration(
+                            color: Colors.lightBlue,
+                            shape: CircleBorder(),
+                          ),
+                          child: IconButton(
+                            icon: Icon(Icons.photo_library),
+                            color: Colors.white,
+                            onPressed: () => editProfilePic(ImageSource.gallery),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

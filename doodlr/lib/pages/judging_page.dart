@@ -40,7 +40,9 @@ class _JudgingWidgetState extends State<JudgingWidget> {
     Colors.black
   ];
   List<JudgingDrawing> _drawings = [];
-  Timer _timer;
+  List<String> _users = [];
+  Timer _countdownTimer;
+  Timer _refreshTimer;
   String _subject;
   DateTime _countdownTime;
   int _timeDiffMin = 0;
@@ -85,7 +87,10 @@ class _JudgingWidgetState extends State<JudgingWidget> {
             user: docList[i].data["user"],
           );
           setState(() {
-            _drawings.add(tmpDrawing);
+            if (!_users.contains(tmpDrawing.user)) {
+              _drawings.add(tmpDrawing);
+              _users.add(tmpDrawing.user);
+            }
           });
         }
       }
@@ -181,7 +186,7 @@ class _JudgingWidgetState extends State<JudgingWidget> {
     });
   }
 
-  void _submitVotes() {
+  void _submitVotes() async {
     if(_drawings.length == 1 && _curGold == null) {
       _displayVotingError('Please assign the gold medal to a drawing before submitting.');
       return;
@@ -199,11 +204,16 @@ class _JudgingWidgetState extends State<JudgingWidget> {
         final TransactionHandler createTransaction = (Transaction tx) async {
           final DocumentSnapshot docRef = await tx.get(_firestore.collection("votes").document("vote_counts"));
           final curGoldUser = _drawings[_curGold].user;
-          final curGoldCount = docRef.data.containsKey(curGoldUser) ? docRef.data[curGoldUser] : 0;
+          final curGoldCount = (docRef.data == null) ? 0 : (docRef.data.containsKey(curGoldUser) ? docRef.data[curGoldUser] : 0);
           final Map<String, dynamic> data = {
             curGoldUser: curGoldCount + 5,
           };
-          await tx.update(docRef.reference, data);
+          if (docRef.data == null) {
+            await tx.set(docRef.reference, data);
+          }
+          else {
+            await tx.update(docRef.reference, data);
+          }
 
           return data;
         };
@@ -212,14 +222,19 @@ class _JudgingWidgetState extends State<JudgingWidget> {
         final TransactionHandler createTransaction = (Transaction tx) async {
           final DocumentSnapshot docRef = await tx.get(_firestore.collection("votes").document("vote_counts"));
           final curGoldUser = _drawings[_curGold].user;
-          final curGoldCount = docRef.data.containsKey(curGoldUser) ? docRef.data[curGoldUser] : 0;
+          final curGoldCount = (docRef.data == null) ? 0 : (docRef.data.containsKey(curGoldUser) ? docRef.data[curGoldUser] : 0);
           final curSilverUser = _drawings[_curSilver].user;
-          final curSilverCount = docRef.data.containsKey(curSilverUser) ? docRef.data[curSilverUser] : 0;
+          final curSilverCount = (docRef.data == null) ? 0 : (docRef.data.containsKey(curSilverUser) ? docRef.data[curSilverUser] : 0);
           final Map<String, dynamic> data = {
             curGoldUser: curGoldCount + 5,
             curSilverUser: curSilverCount + 3,
           };
-          await tx.update(docRef.reference, data);
+          if (docRef.data == null) {
+            await tx.set(docRef.reference, data);
+          }
+          else {
+            await tx.update(docRef.reference, data);
+          }
 
           return data;
         };
@@ -228,22 +243,39 @@ class _JudgingWidgetState extends State<JudgingWidget> {
         final TransactionHandler createTransaction = (Transaction tx) async {
           final DocumentSnapshot docRef = await tx.get(_firestore.collection("votes").document("vote_counts"));
           final curGoldUser = _drawings[_curGold].user;
-          final curGoldCount = docRef.data.containsKey(curGoldUser) ? docRef.data[curGoldUser] : 0;
+          final curGoldCount = (docRef.data == null) ? 0 : (docRef.data.containsKey(curGoldUser) ? docRef.data[curGoldUser] : 0);
           final curSilverUser = _drawings[_curSilver].user;
-          final curSilverCount = docRef.data.containsKey(curSilverUser) ? docRef.data[curSilverUser] : 0;
+          final curSilverCount = (docRef.data == null) ? 0 : (docRef.data.containsKey(curSilverUser) ? docRef.data[curSilverUser] : 0);
           final curBronzeUser = _drawings[_curBronze].user;
-          final curBronzeCount = docRef.data.containsKey(curBronzeUser) ? docRef.data[curBronzeUser] : 0;
+          final curBronzeCount = (docRef.data == null) ? 0 : (docRef.data.containsKey(curBronzeUser) ? docRef.data[curBronzeUser] : 0);
           final Map<String, dynamic> data = {
             curGoldUser: curGoldCount + 5,
             curSilverUser: curSilverCount + 3,
             curBronzeUser: curBronzeCount + 1,
           };
-          await tx.update(docRef.reference, data);
+          if (docRef.data == null) {
+            await tx.set(docRef.reference, data);
+          }
+          else {
+            await tx.update(docRef.reference, data);
+          }
 
           return data;
         };
         _firestore.runTransaction(createTransaction);
       }
+      DocumentSnapshot doc = await _firestore
+          .collection("users")
+          .document(_user.uid)
+          .get();
+
+      var curGamesPlayed = doc.data["gamesPlayed"];
+      await _firestore
+          .collection("users")
+          .document(_user.uid)
+          .updateData({
+            "gamesPlayed" : curGamesPlayed + 1,
+          });
       widget.onResultsRound();
     }
   }
@@ -280,13 +312,15 @@ class _JudgingWidgetState extends State<JudgingWidget> {
     super.initState();
     getData();
     getUser();
-    _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => getTimeDiff());
+    _countdownTimer = Timer.periodic(Duration(seconds: 1), (Timer t) => getTimeDiff());
+    _refreshTimer = Timer.periodic(Duration(seconds: 5), (Timer t) => getDrawings());
     getDrawings();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _countdownTimer?.cancel();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 

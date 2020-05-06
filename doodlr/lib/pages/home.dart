@@ -62,12 +62,14 @@ class _HomeState extends State<Home> {
         });
       },
     ));
-    _children.add(ResultsWidget(onPlayAgain: () {
-      setState(() {
-        _currentIndex = 4;
-        _currentPageTitle = 'Public Game';
-      });
-    },));
+    _children.add(ResultsWidget(auth: widget.auth,
+      onPlayAgain: () {
+        setState(() {
+          _currentIndex = 4;
+          _currentPageTitle = 'Public Game';
+        });
+      },
+    ));
   }
 
   signOut() async {

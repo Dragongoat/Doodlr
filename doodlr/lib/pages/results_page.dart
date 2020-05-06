@@ -1,16 +1,168 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ResultsWidget extends StatefulWidget {
-  ResultsWidget({this.onPlayAgain});
+  ResultsWidget({this.auth, this.onPlayAgain});
 
   final onPlayAgain;
+  final auth;
 
   @override
   _ResultsWidgetState createState() => _ResultsWidgetState();
 }
 
 class _ResultsWidgetState extends State<ResultsWidget> {
+  final _firestore = Firestore.instance;
+  FirebaseUser _user;
+  Timer _refreshTimer;
+  bool _awardedMedal = false;
+  String _goldWinner = "Gold";
+  String _goldDrawing;
+  String _silverWinner = "Silver";
+  String _silverDrawing;
+  String _bronzeWinner = "Bronze";
+  String _bronzeDrawing;
+
+  @override
+  void initState() {
+    super.initState();
+    getUser();
+    _refreshTimer = Timer.periodic(Duration(seconds: 5), (Timer t) => getWinners());
+    getWinners();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void getUser() async {
+    var user = await widget.auth.getCurrentUser();
+    setState(() {
+      _user = user;
+    });
+  }
+
+  void getWinners() async {
+    DocumentSnapshot doc = await _firestore
+        .collection("votes")
+        .document("vote_counts")
+        .get()
+        .catchError((e) => print("Firestore error: $e"));
+    var goldVotes = 0;
+    var silverVotes = 0;
+    var bronzeVotes = 0;
+    var goldUser = "";
+    var silverUser = "";
+    var bronzeUser = "";
+    doc.data?.forEach((key, value) {
+      if (value > goldVotes) {
+        bronzeUser = silverUser;
+        bronzeVotes = silverVotes;
+        silverUser = goldUser;
+        silverVotes = goldVotes;
+        goldUser = key;
+        goldVotes = value;
+      }
+      else if (value > silverVotes) {
+        bronzeUser = silverUser;
+        bronzeVotes = silverVotes;
+        silverUser = key;
+        silverVotes = value;
+      }
+      else if (value > bronzeVotes) {
+        bronzeUser = key;
+        bronzeVotes = value;
+      }
+    });
+
+    setState(() {
+      if (goldUser != "") {
+        _goldWinner = goldUser;
+      }
+      if (silverUser != "") {
+        _silverWinner = silverUser;
+      }
+      if (bronzeUser != "") {
+        _bronzeWinner = bronzeUser;
+      }
+    });
+
+    // Get the three winning drawings
+    DocumentSnapshot goldDoc = await _firestore
+        .collection("drawings")
+        .document(_goldWinner)
+        .get()
+        .catchError((e) => print("Firestore error: $e"));
+    DocumentSnapshot silverDoc = await _firestore
+        .collection("drawings")
+        .document(_silverWinner)
+        .get()
+        .catchError((e) => print("Firestore error: $e"));
+    DocumentSnapshot bronzeDoc = await _firestore
+        .collection("drawings")
+        .document(_bronzeWinner)
+        .get()
+        .catchError((e) => print("Firestore error: $e"));
+    setState(() {
+      _goldDrawing = (goldDoc.data == null) ? null : goldDoc.data["drawingLink"];
+      _silverDrawing = (silverDoc.data == null) ? null : silverDoc.data["drawingLink"];
+      _bronzeDrawing = (bronzeDoc.data == null) ? null : bronzeDoc.data["drawingLink"];
+    });
+
+    if (_awardedMedal == false) {
+      if (_goldWinner == _user.displayName) {
+        DocumentSnapshot doc = await _firestore
+            .collection("users")
+            .document(_user.uid)
+            .get();
+
+        var curGoldMedals = doc.data["goldMedals"];
+        await _firestore
+            .collection("users")
+            .document(_user.uid)
+            .updateData({
+          "goldMedals": curGoldMedals + 1,
+        });
+        _awardedMedal = true;
+      }
+      else if (_silverWinner == _user.displayName) {
+        DocumentSnapshot doc = await _firestore
+            .collection("users")
+            .document(_user.uid)
+            .get();
+
+        var curSilverMedals = doc.data["silverMedals"];
+        await _firestore
+            .collection("users")
+            .document(_user.uid)
+            .updateData({
+          "silverMedals": curSilverMedals + 1,
+        });
+        _awardedMedal = true;
+      }
+      else if (_bronzeWinner == _user.displayName) {
+        DocumentSnapshot doc = await _firestore
+            .collection("users")
+            .document(_user.uid)
+            .get();
+
+        var curBronzeMedals = doc.data["bronzeMedals"];
+        await _firestore
+            .collection("users")
+            .document(_user.uid)
+            .updateData({
+          "bronzeMedals": curBronzeMedals + 1,
+        });
+        _awardedMedal = true;
+      }
+    }
+  }
 
   Widget _showInfoBox() {
     return Padding(
@@ -63,7 +215,9 @@ class _ResultsWidgetState extends State<ResultsWidget> {
                 Column(
                   children: <Widget>[
                     Container(
-                      child: SizedBox(height: MediaQuery.of(context).size.width * 0.4, width: MediaQuery.of(context).size.width * 0.4,),
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height: MediaQuery.of(context).size.width * 0.4,
+                      child: (_goldDrawing == null) ? Center(child: CircularProgressIndicator(),) : Image.network(_goldDrawing),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.amber, width: 2.0),
                         color: Colors.white,
@@ -95,7 +249,7 @@ class _ResultsWidgetState extends State<ResultsWidget> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                     child: AutoSizeText(
-                      "Gold",
+                      _goldWinner,
                       maxLines: 1,
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -125,7 +279,9 @@ class _ResultsWidgetState extends State<ResultsWidget> {
                   child: Column(
                     children: <Widget>[
                       Container(
-                        child: SizedBox(height: MediaQuery.of(context).size.width * 0.4, width: MediaQuery.of(context).size.width * 0.4,),
+                        width: MediaQuery.of(context).size.width * 0.4,
+                        height: MediaQuery.of(context).size.width * 0.4,
+                        child: (_silverDrawing == null) ? Center(child: CircularProgressIndicator(),) : Image.network(_silverDrawing),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey, width: 2.0),
                           color: Colors.white,
@@ -149,7 +305,9 @@ class _ResultsWidgetState extends State<ResultsWidget> {
                   child: Column(
                     children: <Widget>[
                       Container(
-                        child: SizedBox(height: MediaQuery.of(context).size.width * 0.4, width: MediaQuery.of(context).size.width * 0.4,),
+                        width: MediaQuery.of(context).size.width * 0.4,
+                        height: MediaQuery.of(context).size.width * 0.4,
+                        child: (_bronzeDrawing == null) ? Center(child: CircularProgressIndicator(),) : Image.network(_bronzeDrawing),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.deepOrange, width: 2.0),
                           color: Colors.white,
@@ -182,7 +340,7 @@ class _ResultsWidgetState extends State<ResultsWidget> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                     child: AutoSizeText(
-                      "Silver",
+                      _silverWinner,
                       maxLines: 1,
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -203,7 +361,7 @@ class _ResultsWidgetState extends State<ResultsWidget> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                     child: AutoSizeText(
-                      "Bronze",
+                      _bronzeWinner,
                       maxLines: 1,
                       textAlign: TextAlign.center,
                       style: TextStyle(
