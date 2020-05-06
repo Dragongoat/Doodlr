@@ -40,12 +40,14 @@ class _HomeState extends State<Home> {
     _children.add(ProfileWidget(auth: widget.auth));
     _children.add(PlaceholderWidget(Colors.pink, "Leaderboard"));
     _children.add(PlaceholderWidget(Colors.green, "How to Play"));
-    _children.add(Draw(onJudgingRound: () {
-      setState(() {
-        _currentIndex = 5;
-        _currentPageTitle = 'Judging Round';
-      });
-    }));
+    _children.add(Draw(auth: widget.auth,
+      onJudgingRound: () {
+        setState(() {
+          _currentIndex = 5;
+          _currentPageTitle = 'Judging Round';
+        });
+      },
+    ));
     _children.add(JudgingWidget(onResultsRound: () {
       setState(() {
         _currentIndex = 6;

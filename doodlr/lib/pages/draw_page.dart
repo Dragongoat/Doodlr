@@ -1,12 +1,21 @@
 // Code adapted from this medium article: https://medium.com/flutter-community/drawing-in-flutter-using-custompainter-307a9f1c21f8
+import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Draw extends StatefulWidget {
-  Draw({this.onJudgingRound});
+  Draw({this.auth, this.onJudgingRound});
 
+  final auth;
   final onJudgingRound;
 
   @override
@@ -14,14 +23,14 @@ class Draw extends StatefulWidget {
 }
 
 class _DrawState extends State<Draw> {
-  Color selectedColor = Colors.black;
-  Color pickerColor = Colors.black;
-  double strokeWidth = 3.0;
-  List<DrawingPoints> points = List();
-  double opacity = 1.0;
-  StrokeCap strokeCap = StrokeCap.round;
-  SelectedMode selectedMode = SelectedMode.Color;
-  List<Color> colors = [
+  Color _selectedColor = Colors.black;
+  Color _pickerColor = Colors.black;
+  double _strokeWidth = 3.0;
+  List<DrawingPoints> _points = List();
+  double _opacity = 1.0;
+  StrokeCap _strokeCap = StrokeCap.round;
+  SelectedMode _selectedMode = SelectedMode.Color;
+  List<Color> _colors = [
     Colors.red,
     Colors.green,
     Colors.blue,
@@ -29,27 +38,131 @@ class _DrawState extends State<Draw> {
     Colors.black,
     Colors.white
   ];
+  Timer _timer;
+  String _subject;
+  DateTime _countdownTime;
+  int _timeDiffMin = 0;
+  int _timeDiffSec = 0;
+  bool _roundRedirect = false;
+  FirebaseUser _user;
+
+  void getData() async {
+    final response = await http.get('https://doodlr.org/public/data/');
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data= json.decode(response.body);
+      setState(() {
+        _subject = data['subject'];
+        _countdownTime = DateTime.parse(data['timer']);
+        getTimeDiff();
+      });
+    }
+  }
+
+  void getUser() async {
+    var user = await widget.auth.getCurrentUser();
+    setState(() {
+      _user = user;
+    });
+  }
+
+  void getTimeDiff() {
+    Duration difference = _countdownTime.difference(DateTime.now().toUtc());
+    setState(() {
+      _timeDiffMin = difference.inSeconds < 0 ? 0 : difference.inMinutes;
+      _timeDiffSec = difference.inSeconds < 0 ? 0 : difference.inSeconds - (difference.inMinutes * 60);
+      if (difference.inSeconds < 0 && !_roundRedirect) {
+        _roundRedirect = true;
+        saveAndSendDrawing();
+      }
+    });
+  }
+
+  void saveAndSendDrawing() async {
+    String result = await _saveDrawing(_user.uid);
+    print(result);
+    widget.onJudgingRound();
+  }
+
+  Future<String> _saveDrawing(String imageId) async {
+    PictureRecorder recorder = PictureRecorder();
+    Canvas canvas = Canvas(recorder);
+    DrawingPainter painter = DrawingPainter(pointsList: _points);
+    var size = Size(MediaQuery.of(context).size.width * 0.9, MediaQuery.of(context).size.width * 0.9);
+    painter.paint(canvas, size);
+    final img = await recorder.endRecording().toImage(size.width.floor(), size.height.floor());
+
+    final pngBytes = await img.toByteData(format: ImageByteFormat.png);
+    StorageReference ref =
+    FirebaseStorage.instance.ref().child("drawings").child("$imageId.png");
+    StorageUploadTask uploadTask = ref.putData(pngBytes.buffer.asUint8List(pngBytes.offsetInBytes, pngBytes.lengthInBytes));
+    return await (await uploadTask.onComplete).ref.getDownloadURL();
+  }
+
+  Future<String> _pickSaveImage(String imageId) async {
+    File imageFile = await ImagePicker.pickImage(source: ImageSource.camera);
+    StorageReference ref =
+    FirebaseStorage.instance.ref().child("drawings").child("$imageId.png");
+    StorageUploadTask uploadTask = ref.putFile(imageFile);
+    return await (await uploadTask.onComplete).ref.getDownloadURL();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+    getUser();
+    _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => getTimeDiff());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return _showPage();
   }
 
   Widget _showPage() {
-    return Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/colored_pencils_pixel.png"),
-            fit: BoxFit.cover,
-          ),
-        ),
-        constraints: BoxConstraints.expand(),
+    if (_subject == null || _countdownTime == null || _user == null) {
+      return Center(
         child: Column(
-          children: [
-            _showInfoBox(),
-            _showCanvas(),
-            _showTools(),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Text("Loading game data..."),
+            ),
+            CircularProgressIndicator(),
           ],
-        )
+        ),
+      );
+    }
+    return Stack(
+      children: <Widget>[
+        Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/colored_pencils_pixel.png"),
+              fit: BoxFit.cover,
+            ),
+          ),
+          constraints: BoxConstraints.expand(),
+          child: Column(
+            children: [
+              _showInfoBox(),
+              _showCanvas(),
+              _showTools(),
+            ],
+          )
+        ),
+        (_roundRedirect) ? Center(
+          child: CircularProgressIndicator(),
+        ) : Container(),
+      ]
     );
   }
 
@@ -78,20 +191,23 @@ class _DrawState extends State<Draw> {
             children: <Widget>[
               const SizedBox(height: 5),
               Text(
-                "You are drawing: house",
+                "You are drawing: $_subject",
                 style: TextStyle(
                   fontSize: 20,
                 ),
               ),
               const SizedBox(height: 10),
               GestureDetector(
-                child: Text("Time Remaining:"),
-                onTap: () => widget.onJudgingRound(),
+                child: Text(
+                  "Time Remaining:",
+                ),
+                onTap: () => saveAndSendDrawing(),
               ),
               Text(
-                "1m 0s",
+                "${_timeDiffMin}m ${_timeDiffSec}s",
                 style: TextStyle(
                   fontSize: 20,
+                  color: (_timeDiffMin == 0 && _timeDiffSec < 30) ? Colors.red : Colors.black,
                 ),
               ),
               const SizedBox(height: 5),
@@ -123,47 +239,49 @@ class _DrawState extends State<Draw> {
         ),
         child: GestureDetector(
           onPanUpdate: (details) {
-            setState(() {
-              RenderBox renderBox = context.findRenderObject();
-              double boxSize = MediaQuery.of(context).size.width * 0.9;
-              Offset touchPosition = details.localPosition;
-              if (touchPosition.dx < 0 || touchPosition.dy < 0 ||
-                touchPosition.dx > boxSize || touchPosition.dy > boxSize) {
-                points.add(null);
-              }
-              else {
-                points.add(DrawingPoints(
-                    points: details.localPosition,
-                    paint: Paint()
-                      ..strokeCap = strokeCap
-                      ..isAntiAlias = true
-                      ..color = selectedColor.withOpacity(opacity)
-                      ..strokeWidth = strokeWidth));
-              }
-            });
+            if (!_roundRedirect) {
+              setState(() {
+                double boxSize = MediaQuery.of(context).size.width * 0.9;
+                Offset touchPosition = details.localPosition;
+                if (touchPosition.dx < 0 || touchPosition.dy < 0 ||
+                    touchPosition.dx > boxSize || touchPosition.dy > boxSize) {
+                  _points.add(null);
+                }
+                else {
+                  _points.add(DrawingPoints(
+                      points: details.localPosition,
+                      paint: Paint()
+                        ..strokeCap = _strokeCap
+                        ..isAntiAlias = true
+                        ..color = _selectedColor.withOpacity(_opacity)
+                        ..strokeWidth = _strokeWidth));
+                }
+              });
+            }
           },
           onPanStart: (details) {
-            setState(() {
-              RenderBox renderBox = context.findRenderObject();
-              points.add(DrawingPoints(
-                  points: details.localPosition,
-                  paint: Paint()
-                    ..strokeCap = strokeCap
-                    ..isAntiAlias = true
-                    ..color = selectedColor.withOpacity(opacity)
-                    ..strokeWidth = strokeWidth));
-            });
+            if (!_roundRedirect) {
+              setState(() {
+                _points.add(DrawingPoints(
+                    points: details.localPosition,
+                    paint: Paint()
+                      ..strokeCap = _strokeCap
+                      ..isAntiAlias = true
+                      ..color = _selectedColor.withOpacity(_opacity)
+                      ..strokeWidth = _strokeWidth));
+              });
+            }
           },
           onPanEnd: (details) {
             setState(() {
-              points.add(null);
+              _points.add(null);
             });
           },
           child: ClipRect(
             child: CustomPaint(
               size: Size.square(MediaQuery.of(context).size.width * 0.9),
               painter: DrawingPainter(
-                pointsList: points,
+                pointsList: _points,
               ),
             ),
           ),
@@ -224,15 +342,15 @@ class _DrawState extends State<Draw> {
                             child: Center(
                               child: Ink(
                                 decoration: ShapeDecoration(
-                                  color: (selectedMode == SelectedMode.Color) ? Colors.lightBlue : Colors.lightBlueAccent[100],
-                                  shape: CircleBorder(side: BorderSide(width: 2.0, color: selectedColor)),
+                                  color: (_selectedMode == SelectedMode.Color) ? Colors.lightBlue : Colors.lightBlueAccent[100],
+                                  shape: CircleBorder(side: BorderSide(width: 2.0, color: _selectedColor)),
                                 ),
                                 child: IconButton(
                                   icon: Icon(Icons.color_lens),
-                                  color: (selectedMode == SelectedMode.Color) ? Colors.white : Colors.black,
+                                  color: (_selectedMode == SelectedMode.Color) ? Colors.white : Colors.black,
                                   onPressed: () {
                                     setState(() {
-                                      selectedMode = SelectedMode.Color;
+                                      _selectedMode = SelectedMode.Color;
                                     });
                                   },
                                 ),
@@ -251,15 +369,15 @@ class _DrawState extends State<Draw> {
                             child: Center(
                               child: Ink(
                                 decoration: ShapeDecoration(
-                                  color: (selectedMode == SelectedMode.StrokeWidth) ? Colors.lightBlue : Colors.lightBlueAccent[100],
+                                  color: (_selectedMode == SelectedMode.StrokeWidth) ? Colors.lightBlue : Colors.lightBlueAccent[100],
                                   shape: CircleBorder(),
                                 ),
                                 child: IconButton(
                                   icon: Icon(Icons.album),
-                                  color: (selectedMode == SelectedMode.StrokeWidth) ? Colors.white : Colors.black,
+                                  color: (_selectedMode == SelectedMode.StrokeWidth) ? Colors.white : Colors.black,
                                   onPressed: () {
                                     setState(() {
-                                      selectedMode = SelectedMode.StrokeWidth;
+                                      _selectedMode = SelectedMode.StrokeWidth;
                                     });
                                   },
                                 ),
@@ -278,15 +396,15 @@ class _DrawState extends State<Draw> {
                             child: Center(
                               child: Ink(
                                 decoration: ShapeDecoration(
-                                  color: (selectedMode == SelectedMode.Opacity) ? Colors.lightBlue : Colors.lightBlueAccent[100],
+                                  color: (_selectedMode == SelectedMode.Opacity) ? Colors.lightBlue : Colors.lightBlueAccent[100],
                                   shape: CircleBorder(),
                                 ),
                                 child: IconButton(
                                   icon: Icon(Icons.opacity),
-                                  color: (selectedMode == SelectedMode.Opacity) ? Colors.white : Colors.black,
+                                  color: (_selectedMode == SelectedMode.Opacity) ? Colors.white : Colors.black,
                                   onPressed: () {
                                     setState(() {
-                                      selectedMode = SelectedMode.Opacity;
+                                      _selectedMode = SelectedMode.Opacity;
                                     });
                                   },
                                 ),
@@ -336,7 +454,7 @@ class _DrawState extends State<Draw> {
                                               child: Text('Yes'),
                                               onPressed: () {
                                                 setState(() {
-                                                  points.clear();
+                                                  _points.clear();
                                                 });
                                                 Navigator.of(context).pop();
                                               },
@@ -357,7 +475,7 @@ class _DrawState extends State<Draw> {
                   ],
                 ),
                 SizedBox(height: 10.0),
-                (selectedMode == SelectedMode.Color)
+                (_selectedMode == SelectedMode.Color)
                     ? Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
@@ -366,19 +484,19 @@ class _DrawState extends State<Draw> {
                 ),
                     )
                     : Slider(
-                    value: (selectedMode == SelectedMode.StrokeWidth)
-                        ? strokeWidth
-                        : opacity,
-                    max: (selectedMode == SelectedMode.StrokeWidth)
+                    value: (_selectedMode == SelectedMode.StrokeWidth)
+                        ? _strokeWidth
+                        : _opacity,
+                    max: (_selectedMode == SelectedMode.StrokeWidth)
                         ? 50.0
                         : 1.0,
                     min: 0.0,
                     onChanged: (val) {
                       setState(() {
-                        if (selectedMode == SelectedMode.StrokeWidth)
-                          strokeWidth = val;
+                        if (_selectedMode == SelectedMode.StrokeWidth)
+                          _strokeWidth = val;
                         else
-                          opacity = val;
+                          _opacity = val;
                       });
                     }),
               ],
@@ -390,7 +508,7 @@ class _DrawState extends State<Draw> {
 
   getColorList() {
     List<Widget> listWidget = List();
-    for (Color color in colors) {
+    for (Color color in _colors) {
       listWidget.add(colorCircle(color));
     }
     Widget colorPicker = GestureDetector(
@@ -401,9 +519,9 @@ class _DrawState extends State<Draw> {
             title: const Text('Pick a color!'),
             content: SingleChildScrollView(
               child: ColorPicker(
-                pickerColor: pickerColor,
+                pickerColor: _pickerColor,
                 onColorChanged: (color) {
-                  pickerColor = color;
+                  _pickerColor = color;
                 },
                 pickerAreaHeightPercent: 0.8,
               ),
@@ -412,7 +530,7 @@ class _DrawState extends State<Draw> {
               FlatButton(
                 child: const Text('Save'),
                 onPressed: () {
-                  setState(() => selectedColor = pickerColor);
+                  setState(() => _selectedColor = _pickerColor);
                   Navigator.of(context).pop();
                 },
               ),
@@ -442,7 +560,7 @@ class _DrawState extends State<Draw> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          selectedColor = color;
+          _selectedColor = color;
         });
       },
       child: ClipOval(
