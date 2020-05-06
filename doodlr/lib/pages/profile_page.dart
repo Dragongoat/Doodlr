@@ -322,56 +322,56 @@ class ProfileWidgetState extends State<ProfileWidget> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: <Widget>[
-            CircleAvatar(
-              maxRadius: 80.0,
-              minRadius: 40.0,
-              backgroundImage: (_profilePicLink == null) ? AssetImage("assets/profile_pic.jpg") : NetworkImage(_profilePicLink),
-              backgroundColor: Colors.transparent,
+            Expanded(
+              child: CircleAvatar(
+                maxRadius: 80.0,
+                minRadius: 40.0,
+                backgroundImage: (_profilePicLink == null) ? AssetImage("assets/profile_pic.jpg") : NetworkImage(_profilePicLink),
+                backgroundColor: Colors.transparent,
+              ),
             ),
             SizedBox(height: 5.0,),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  ClipOval(
-                    child: Material(
-                      color: Colors.white,
-                      child: Center(
-                        child: Ink(
-                          decoration: const ShapeDecoration(
-                            color: Colors.lightBlue,
-                            shape: CircleBorder(),
-                          ),
-                          child: IconButton(
-                            icon: Icon(Icons.photo_camera),
-                            color: Colors.white,
-                            onPressed: () => editProfilePic(ImageSource.camera),
-                          ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ClipOval(
+                  child: Material(
+                    color: Colors.white,
+                    child: Center(
+                      child: Ink(
+                        decoration: const ShapeDecoration(
+                          color: Colors.lightBlue,
+                          shape: CircleBorder(),
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.photo_camera),
+                          color: Colors.white,
+                          onPressed: () => editProfilePic(ImageSource.camera),
                         ),
                       ),
                     ),
                   ),
-                  SizedBox(width: 5.0,),
-                  ClipOval(
-                    child: Material(
-                      color: Colors.white,
-                      child: Center(
-                        child: Ink(
-                          decoration: const ShapeDecoration(
-                            color: Colors.lightBlue,
-                            shape: CircleBorder(),
-                          ),
-                          child: IconButton(
-                            icon: Icon(Icons.photo_library),
-                            color: Colors.white,
-                            onPressed: () => editProfilePic(ImageSource.gallery),
-                          ),
+                ),
+                SizedBox(width: 5.0,),
+                ClipOval(
+                  child: Material(
+                    color: Colors.white,
+                    child: Center(
+                      child: Ink(
+                        decoration: const ShapeDecoration(
+                          color: Colors.lightBlue,
+                          shape: CircleBorder(),
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.photo_library),
+                          color: Colors.white,
+                          onPressed: () => editProfilePic(ImageSource.gallery),
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

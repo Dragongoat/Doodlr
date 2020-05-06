@@ -60,106 +60,111 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     var goldUser = "";
     var silverUser = "";
     var bronzeUser = "";
-    doc.data?.forEach((key, value) {
-      if (value > goldVotes) {
-        bronzeUser = silverUser;
-        bronzeVotes = silverVotes;
-        silverUser = goldUser;
-        silverVotes = goldVotes;
-        goldUser = key;
-        goldVotes = value;
-      }
-      else if (value > silverVotes) {
-        bronzeUser = silverUser;
-        bronzeVotes = silverVotes;
-        silverUser = key;
-        silverVotes = value;
-      }
-      else if (value > bronzeVotes) {
-        bronzeUser = key;
-        bronzeVotes = value;
-      }
-    });
+    if (doc.data != null && doc.data.containsKey(_user.displayName)) {
+      doc.data?.forEach((key, value) {
+        if (value > goldVotes) {
+          bronzeUser = silverUser;
+          bronzeVotes = silverVotes;
+          silverUser = goldUser;
+          silverVotes = goldVotes;
+          goldUser = key;
+          goldVotes = value;
+        }
+        else if (value > silverVotes) {
+          bronzeUser = silverUser;
+          bronzeVotes = silverVotes;
+          silverUser = key;
+          silverVotes = value;
+        }
+        else if (value > bronzeVotes) {
+          bronzeUser = key;
+          bronzeVotes = value;
+        }
+      });
 
-    setState(() {
-      if (goldUser != "") {
-        _goldWinner = goldUser;
-      }
-      if (silverUser != "") {
-        _silverWinner = silverUser;
-      }
-      if (bronzeUser != "") {
-        _bronzeWinner = bronzeUser;
-      }
-    });
+      setState(() {
+        if (goldUser != "") {
+          _goldWinner = goldUser;
+        }
+        if (silverUser != "") {
+          _silverWinner = silverUser;
+        }
+        if (bronzeUser != "") {
+          _bronzeWinner = bronzeUser;
+        }
+      });
 
-    // Get the three winning drawings
-    DocumentSnapshot goldDoc = await _firestore
-        .collection("drawings")
-        .document(_goldWinner)
-        .get()
-        .catchError((e) => print("Firestore error: $e"));
-    DocumentSnapshot silverDoc = await _firestore
-        .collection("drawings")
-        .document(_silverWinner)
-        .get()
-        .catchError((e) => print("Firestore error: $e"));
-    DocumentSnapshot bronzeDoc = await _firestore
-        .collection("drawings")
-        .document(_bronzeWinner)
-        .get()
-        .catchError((e) => print("Firestore error: $e"));
-    setState(() {
-      _goldDrawing = (goldDoc.data == null) ? null : goldDoc.data["drawingLink"];
-      _silverDrawing = (silverDoc.data == null) ? null : silverDoc.data["drawingLink"];
-      _bronzeDrawing = (bronzeDoc.data == null) ? null : bronzeDoc.data["drawingLink"];
-    });
+      // Get the three winning drawings
+      DocumentSnapshot goldDoc = await _firestore
+          .collection("drawings")
+          .document(_goldWinner)
+          .get()
+          .catchError((e) => print("Firestore error: $e"));
+      DocumentSnapshot silverDoc = await _firestore
+          .collection("drawings")
+          .document(_silverWinner)
+          .get()
+          .catchError((e) => print("Firestore error: $e"));
+      DocumentSnapshot bronzeDoc = await _firestore
+          .collection("drawings")
+          .document(_bronzeWinner)
+          .get()
+          .catchError((e) => print("Firestore error: $e"));
+      setState(() {
+        _goldDrawing =
+        (goldDoc.data == null) ? null : goldDoc.data["drawingLink"];
+        _silverDrawing =
+        (silverDoc.data == null) ? null : silverDoc.data["drawingLink"];
+        _bronzeDrawing =
+        (bronzeDoc.data == null) ? null : bronzeDoc.data["drawingLink"];
+      });
 
-    if (_awardedMedal == false) {
-      if (_goldWinner == _user.displayName) {
-        DocumentSnapshot doc = await _firestore
-            .collection("users")
-            .document(_user.uid)
-            .get();
+      if (_awardedMedal == false) {
+        if (_goldWinner == _user.displayName) {
+          DocumentSnapshot doc = await _firestore
+              .collection("users")
+              .document(_user.uid)
+              .get();
 
-        var curGoldMedals = doc.data["goldMedals"];
-        await _firestore
-            .collection("users")
-            .document(_user.uid)
-            .updateData({
-          "goldMedals": curGoldMedals + 1,
-        });
-        _awardedMedal = true;
-      }
-      else if (_silverWinner == _user.displayName) {
-        DocumentSnapshot doc = await _firestore
-            .collection("users")
-            .document(_user.uid)
-            .get();
+          var curGoldMedals = doc.data["goldMedals"];
+          await _firestore
+              .collection("users")
+              .document(_user.uid)
+              .updateData({
+            "goldMedals": curGoldMedals + 1,
+          });
+          _awardedMedal = true;
+        }
+        else if (_silverWinner == _user.displayName) {
+          DocumentSnapshot doc = await _firestore
+              .collection("users")
+              .document(_user.uid)
+              .get();
 
-        var curSilverMedals = doc.data["silverMedals"];
-        await _firestore
-            .collection("users")
-            .document(_user.uid)
-            .updateData({
-          "silverMedals": curSilverMedals + 1,
-        });
-        _awardedMedal = true;
-      }
-      else if (_bronzeWinner == _user.displayName) {
-        DocumentSnapshot doc = await _firestore
-            .collection("users")
-            .document(_user.uid)
-            .get();
+          var curSilverMedals = doc.data["silverMedals"];
+          await _firestore
+              .collection("users")
+              .document(_user.uid)
+              .updateData({
+            "silverMedals": curSilverMedals + 1,
+          });
+          _awardedMedal = true;
+        }
+        else if (_bronzeWinner == _user.displayName) {
+          DocumentSnapshot doc = await _firestore
+              .collection("users")
+              .document(_user.uid)
+              .get();
 
-        var curBronzeMedals = doc.data["bronzeMedals"];
-        await _firestore
-            .collection("users")
-            .document(_user.uid)
-            .updateData({
-          "bronzeMedals": curBronzeMedals + 1,
-        });
-        _awardedMedal = true;
+          var curBronzeMedals = doc.data["bronzeMedals"];
+          await _firestore
+              .collection("users")
+              .document(_user.uid)
+              .updateData({
+            "bronzeMedals": curBronzeMedals + 1,
+          });
+          _awardedMedal = true;
+        }
       }
     }
   }
