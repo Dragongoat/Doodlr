@@ -1,16 +1,14 @@
 // Code adapted from this medium article: https://medium.com/flutter-community/drawing-in-flutter-using-custompainter-307a9f1c21f8
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:image_picker/image_picker.dart';
 
 class Draw extends StatefulWidget {
   Draw({this.auth, this.onJudgingRound});
@@ -23,6 +21,7 @@ class Draw extends StatefulWidget {
 }
 
 class _DrawState extends State<Draw> {
+  final _firestore = Firestore.instance;
   Color _selectedColor = Colors.black;
   Color _pickerColor = Colors.black;
   double _strokeWidth = 3.0;
@@ -67,20 +66,29 @@ class _DrawState extends State<Draw> {
   }
 
   void getTimeDiff() {
-    Duration difference = _countdownTime.difference(DateTime.now().toUtc());
-    setState(() {
-      _timeDiffMin = difference.inSeconds < 0 ? 0 : difference.inMinutes;
-      _timeDiffSec = difference.inSeconds < 0 ? 0 : difference.inSeconds - (difference.inMinutes * 60);
-      if (difference.inSeconds < 0 && !_roundRedirect) {
-        _roundRedirect = true;
-        saveAndSendDrawing();
-      }
-    });
+    if (_countdownTime != null) {
+      Duration difference = _countdownTime.difference(DateTime.now().toUtc());
+      setState(() {
+        _timeDiffMin = difference.inSeconds < 0 ? 0 : difference.inMinutes;
+        _timeDiffSec = difference.inSeconds < 0 ? 0 : difference.inSeconds -
+            (difference.inMinutes * 60);
+        if (difference.inSeconds < 0 && !_roundRedirect) {
+          _roundRedirect = true;
+          saveAndSendDrawing();
+        }
+      });
+    }
   }
 
   void saveAndSendDrawing() async {
     String result = await _saveDrawing(_user.uid);
-    print(result);
+    await _firestore.collection("drawings")
+        .document(_user.displayName)
+        .setData(
+        {
+          'drawingLink' : result,
+          'user' : _user.displayName,
+        });
     widget.onJudgingRound();
   }
 
@@ -96,14 +104,6 @@ class _DrawState extends State<Draw> {
     StorageReference ref =
     FirebaseStorage.instance.ref().child("drawings").child("$imageId.png");
     StorageUploadTask uploadTask = ref.putData(pngBytes.buffer.asUint8List(pngBytes.offsetInBytes, pngBytes.lengthInBytes));
-    return await (await uploadTask.onComplete).ref.getDownloadURL();
-  }
-
-  Future<String> _pickSaveImage(String imageId) async {
-    File imageFile = await ImagePicker.pickImage(source: ImageSource.camera);
-    StorageReference ref =
-    FirebaseStorage.instance.ref().child("drawings").child("$imageId.png");
-    StorageUploadTask uploadTask = ref.putFile(imageFile);
     return await (await uploadTask.onComplete).ref.getDownloadURL();
   }
 
@@ -201,7 +201,7 @@ class _DrawState extends State<Draw> {
                 child: Text(
                   "Time Remaining:",
                 ),
-                onTap: () => saveAndSendDrawing(),
+                onTap: () => widget.onJudgingRound(),
               ),
               Text(
                 "${_timeDiffMin}m ${_timeDiffSec}s",

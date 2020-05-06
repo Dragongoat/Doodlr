@@ -48,12 +48,20 @@ class _HomeState extends State<Home> {
         });
       },
     ));
-    _children.add(JudgingWidget(onResultsRound: () {
-      setState(() {
-        _currentIndex = 6;
-        _currentPageTitle = 'Results';
-      });
-    }));
+    _children.add(JudgingWidget(auth: widget.auth,
+      onResultsRound: () {
+        setState(() {
+          _currentIndex = 6;
+          _currentPageTitle = 'Results';
+        });
+      },
+      onReturnHome: () {
+        setState(() {
+          _currentIndex = 0;
+          _currentPageTitle = "Home";
+        });
+      },
+    ));
     _children.add(ResultsWidget(onPlayAgain: () {
       setState(() {
         _currentIndex = 4;
