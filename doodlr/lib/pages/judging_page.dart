@@ -542,7 +542,7 @@ class _JudgingWidgetState extends State<JudgingWidget> {
             children: <Widget>[
               const SizedBox(height: 5),
               Text(
-                "Subject: house",
+                "Subject: $_subject",
                 style: TextStyle(
                   fontSize: 20,
                 ),
